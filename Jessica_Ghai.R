@@ -16,7 +16,7 @@ print(paste0("Number of IDs Client would like to exclude: ",as.character(length(
 ## --- Import ends here
 
 
-## --- Tag Original Dataset with ID valid status
+## --- Tag Original Dataset with ID valid status, Valid ID will be tagged "Valid" in the column:"ValidReponse", Invalid ones will be tagged "Invalid"
 TextDataRaw = TextDataRaw%>%mutate(ValidResponse = if_else(ResponseId %in% ExcludedIDs,"Invalid","Valid"),ValidResponse = as.factor(ValidResponse),Q103 = as.factor(Q103))
 NumericDataRaw = NumericDataRaw%>%mutate(ValidResponse = if_else(ResponseId %in% ExcludedIDs,"Invalid","Valid"),ValidResponse = as.factor(ValidResponse),Q103 = as.factor(Q103))
 
@@ -69,3 +69,7 @@ Q18Text = select(DemoText,Q18,ValidResponse,ResponseId)%>%unnest(Q18)%>%spread(k
 # Bird's colname is buggy replace it
 colnames(Q18Text)[colnames(Q18Text)=="Bird (i.e."] <- "Bird"
 ## --- Sep for Q18 ends here
+
+## At this point, we will have DemoText as the demographic part cleaned. Q13Text and Q18Text as the suppliment table to those two questions.
+## Be aware that a lot of the input had translated into factors, which depends on the graph you would like to plot, may results in some issues.
+## Have fun!!
