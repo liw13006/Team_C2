@@ -6,7 +6,7 @@ pacman::p_load(tidyverse)
 #
  
 ## Data Cleaning and EDA part
-# ---Import Data
+# ---Import Data, On the github you will need to download the two csvs and the xlsx file to make it work
 NumericDataRaw = read_csv("Numeric.csv")
 TextDataRaw = read_csv("ChoiceText.csv")
 
