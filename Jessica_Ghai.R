@@ -73,3 +73,43 @@ colnames(Q18Text)[colnames(Q18Text)=="Bird (i.e."] <- "Bird"
 ## At this point, we will have DemoText as the demographic part cleaned. Q13Text and Q18Text as the suppliment table to those two questions.
 ## Be aware that a lot of the input had translated into factors, which depends on the graph you would like to plot, may results in some issues.
 ## Have fun!!
+
+##########################################################################################
+## For the last question
+LastQText = select(TextDataRaw,Q32_1:Q32_4,ValidResponse,ResponseId)%>%slice(-(1:2))
+
+Q32_1Text = select(LastQText,Q32_1,ValidResponse,ResponseId)%>%unnest(Q32_1)%>%spread(key = Q32_1,value = Q32_1)%>%mutate_at(3:8, ~replace(., !is.na(.), 1.))%>%mutate_at(3:8, ~replace(., is.na(.), 0.))
+Q32_1Text = Q32_1Text[,c(1,2,6,3,5,4,7,8)]
+
+Q32_2Text = select(LastQText,Q32_2,ValidResponse,ResponseId)%>%unnest(Q32_2)%>%spread(key = Q32_2,value = Q32_2)%>%mutate_at(3:8, ~replace(., !is.na(.), 1.))%>%mutate_at(3:8, ~replace(., is.na(.), 0.))
+Q32_2Text = Q32_2Text[,c(1,2,6,3,5,4,7,8)]
+
+Q32_3Text = select(LastQText,Q32_3,ValidResponse,ResponseId)%>%unnest(Q32_3)%>%spread(key = Q32_3,value = Q32_3)%>%mutate_at(3:8, ~replace(., !is.na(.), 1.))%>%mutate_at(3:8, ~replace(., is.na(.), 0.))
+Q32_3Text = Q32_3Text[,c(1,2,6,3,5,4,7,8)]
+
+Q32_4Text = select(LastQText,Q32_4,ValidResponse,ResponseId)%>%unnest(Q32_4)%>%spread(key = Q32_4,value = Q32_4)%>%mutate_at(3:8, ~replace(., !is.na(.), 1.))%>%mutate_at(3:8, ~replace(., is.na(.), 0.))
+Q32_4Text = Q32_4Text[,c(1,2,6,3,5,4,7,8)]
+
+## Counts for each response
+## Q55a.1.I believe a majority of the target population outlined above would respond positively to therapeutic services
+## (e.g., ABA services) that incorporate animals. 
+LastQText$Q32_1 <- factor(LastQText$Q32_1,levels = c("Strongly Agree", "Agree", "Neither Agree or Disagree", "Disagree", "Strongly Disagree"))
+ggplot(LastQText) + aes(Q32_1,fill = Q32_1)+geom_bar()+geom_text(stat='count', aes(label=..count..), vjust=-1)+facet_wrap(Q32_1Text$ValidResponse)
+
+## 55b.2.I believe the presence of an animal can have a calming effect on many individuals within the target population outlined above
+LastQText$Q32_2 <- factor(LastQText$Q32_2,levels = c("Strongly Agree", "Agree", "Neither Agree or Disagree", "Disagree", "Strongly Disagree"))
+ggplot(LastQText) + aes(Q32_2,fill = Q32_2)+geom_bar()+geom_text(stat='count', aes(label=..count..), vjust=-1)+facet_wrap(Q32_2Text$ValidResponse)
+
+## 55c.3.I believe the presence of an animal can increase the frequency of social interaction opportunities between individuals within the target 
+## population outlined above and other people.
+LastQText$Q32_3 <- factor(LastQText$Q32_3,levels = c("Strongly Agree", "Agree", "Neither Agree or Disagree", "Disagree", "Strongly Disagree"))
+ggplot(LastQText) + aes(Q32_3,fill = Q32_3)+geom_bar()+geom_text(stat='count', aes(label=..count..), vjust=-1)+facet_wrap(Q32_3Text$ValidResponse)
+
+## 55d.4.I believe animals can aid in effectively teaching social interaction and communication skills associated with ASD symptomatology
+## for a majority of the target population outlined above. 
+LastQText$Q32_4 <- factor(LastQText$Q32_4,levels = c("Strongly Agree", "Agree", "Neither Agree or Disagree", "Disagree", "Strongly Disagree"))
+ggplot(LastQText) + aes(Q32_4,fill = Q32_4)+geom_bar()+geom_text(stat='count', aes(label=..count..), vjust=-1)+facet_wrap(Q32_4Text$ValidResponse)
+
+
+
+
