@@ -45,7 +45,7 @@ ggplot(geo) + aes(x = Q103) + geom_bar()+geom_text(stat='count', aes(label=..cou
 
 ## --- Seperate Demographics
 # Seperate the Demographic part, setting them as adequate type
-DemoText = select(TextDataRaw,Q10:Q28,ValidResponse,ResponseId)%>%slice(-(1:2))%>%mutate_at(.vars = c(1:4,8:9,12:13,16:21), .funs = as.factor)%>%mutate_at(.vars = 5:6, .funs = as.numeric)%>%mutate(Q13 = as.list(strsplit(Q13, ",")),Q18 = (as.list(strsplit(Q18, ","))))
+DemoText = select(TextDataRaw,Q10:Q34,ValidResponse,ResponseId)%>%slice(-(1:2))%>%mutate_at(.vars = c(1:4,8:9,12:13,16:23), .funs = as.factor)%>%mutate_at(.vars = 5:6, .funs = as.numeric)%>%mutate(Q13 = as.list(strsplit(Q13, ",")),Q18 = (as.list(strsplit(Q18, ","))))
 
 # Combine "Day care" with"Daycare"
 DemoText = DemoText%>%mutate(Q13_6_TEXT = if_else(DemoText$Q13_6_TEXT == "Daycare","Day care",DemoText$Q13_6_TEXT))

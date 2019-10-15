@@ -83,8 +83,8 @@ Initial visual ends here
 
 Seperate the Demographic part, setting them as adequate type
 ```{r}
-DemoText = select(TextDataRaw,Q10:Q28,ValidResponse,ResponseId)%>%slice(-(1:2))%>%
-  mutate_at(.vars = c(1:4,8:9,12:13,16:21), .funs = as.factor)%>%
+DemoText = select(TextDataRaw,Q10:Q34,ValidResponse,ResponseId)%>%slice(-(1:2))%>%
+  mutate_at(.vars = c(1:4,8:9,12:13,16:23), .funs = as.factor)%>%
   mutate_at(.vars = 5:6, .funs = as.numeric)%>%mutate(Q13 = as.list(strsplit(Q13, ",")),
   Q18 = (as.list(strsplit(Q18, ","))))
 ```
@@ -125,8 +125,12 @@ DemoText$Q24 <-  relevel(DemoText$Q24,"Yes")
 
 DemoText$Q28 <-  relevel(DemoText$Q28,"Yes")
 
+DemoText$Q33 <-  relevel(DemoText$Q33,"Yes")
+
+DemoText$Q34 <-  relevel(DemoText$Q34,"Yes")
+
 ## Rename the columns so the number match the number on the survey
-colnames(DemoText) <- c("Q1","Q2","Q3","Q3_text","Q4_x","Q4_y","Q4_Region","Q5a","Q5b","Q6","Q6_text","Q7","Q8","Q9","Q9_text","Q10","Q11","Q12","Q13","Q14","Q15","ValidResponse","ResponseId")
+colnames(DemoText) <- c("Q1","Q2","Q3","Q3_text","Q4_x","Q4_y","Q4_Region","Q5a","Q5b","Q6","Q6_text","Q7","Q8","Q9","Q9_text","Q10","Q11","Q12","Q13","Q14","Q15","Q16","Q17","ValidResponse","ResponseId")
 ```
 
 ## Separation For Q6
@@ -149,8 +153,15 @@ Q9Text = select(DemoText,Q9,ValidResponse,ResponseId)%>%
 colnames(Q9Text)[colnames(Q9Text)=="Bird (i.e."] <- "Bird"
 ```
 
+# Prepare Dog vs no-Dog for the research questions.
+
+```{r}
+DemoText = full_join(DemoText,select(Q9Text,ResponseId,Dog),by = "ResponseId")
+```
+
 At this point, we will have DemoText as the demographic part cleaned. Q6Text and Q9Text as the suppliment table to those two questions. What's missing here is the EDA on the valid and invalid groups to see if they belongs to the same population or not. In other words, what and how much bias will be introduced into the sample if we exclude them?
 
+---
 
 # Last Question Data Cleaning
 
@@ -233,3 +244,27 @@ for(i in 1:4){
 ```
 
 Judging from the t statistics, it seems that the id excluded were appeared to have high probability that they comes from the same population? Can we safely exclude them? Or does it matters if we exclude them or not?
+
+---
+
+# EDA on research questions
+
+## RQ.a: Does the Response in Q17(Incorporation with animal) affect the response towards Q55.a - d
+
+preparing the data for plotting
+
+```{r}
+Q17toQ55 <-  full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q17,ResponseId,ValidResponse),LastQTextTEST)%>%melt(measure.vars = 4:7)
+
+```
+Check the number of non-NA response:
+
+```{r}
+full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q17,ResponseId,ValidResponse),LastQTextTEST)%>%drop_na()%>%dim()
+```
+Plot them
+```{r}
+ggplot(Q17toQ55)+aes(x = value,fill = Q17)+geom_histogram(bins = 10,aes(y=..density..),alpha = .8,position = "dodge")+facet_grid(variable ~ ValidResponse)+ggtitle("Hist")
+```
+
+Below is the rest of the EDA of Research Question
