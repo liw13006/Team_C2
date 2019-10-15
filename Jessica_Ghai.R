@@ -1,6 +1,6 @@
 ## 1st Consulting Project. Jessica Ghai, Animal Assisted Therapy for Children with Autism
 #--- load lib's here, separate by "," you could add whatever you need here
-pacman::p_load(tidyverse)
+pacman::p_load(tidyverse,reshape2)
 
 # All the weird codes you might find are just me trying functions, Run the Highlighted code you will get the idea:
 #
@@ -111,5 +111,37 @@ LastQText$Q32_4 <- factor(LastQText$Q32_4,levels = c("Strongly Agree", "Agree", 
 ggplot(LastQText) + aes(Q32_4,fill = Q32_4)+geom_bar()+geom_text(stat='count', aes(label=..count..), vjust=-1)+facet_wrap(Q32_4Text$ValidResponse)
 
 
+## Some expoloring among the Last Question's responses
+#codinganswers = function(x){
+#  return(case_when(x=="Strongly Agree"~1.0,x=="Agree"~2.0,x=="Neither Agree or Disagree",3.0,x=="Disagree"~4.0,x=="Strongly Disagree"~5.0))}
+#LastQTextNumeric <- LastQText%>%mutate(Q32_1 = case_when(Q32_1=="Strongly Agree"~1.0,
+#                                                         Q32_1=="Agree"~2.0,
+#                                                         Q32_1=="Neither Agree or Disagree",3.0,
+#                                                         Q32_1=="Disagree"~4.0,
+#                                                         Q32_1=="Strongly Disagree"~5.0))
+unique(LastQText$Q32_1)
+#Check if the factor is adequatly transfered into integers
+LastQTextTEST <- LastQText%>%mutate_at(.var = 1:4,.funs = as.factor)%>%mutate_at(.var = 1:4,.funs = as.numeric)
+## Calculate 
+#meanLQValid <-  LastQTextTEST%>%filter(ValidResponse == "Valid")%>%select(1:4)%>%drop_na()%>%colMeans()
+#sdLQValid <-  LastQTextTEST%>%filter(ValidResponse == "Valid")%>%select(1:4)%>%drop_na()%>%apply(2,sd)
+#nLQValid <- LastQTextTEST%>%filter(ValidResponse == "Valid")%>%select(1:4)%>%drop_na()%>%apply(2,length)
 
+#meanLQInvalid <-  LastQTextTEST%>%filter(ValidResponse == "Invalid")%>%select(1:4)%>%drop_na()%>%colMeans()
+#sdLQInvalid <-  LastQTextTEST%>%filter(ValidResponse == "Invalid")%>%select(1:4)%>%drop_na()%>%apply(2,sd)                                                                                 
+#nLQInvalid <- LastQTextTEST%>%filter(ValidResponse == "Invalid")%>%select(1:4)%>%drop_na()%>%apply(2,length)
 
+LQvalid <-  LastQTextTEST%>%filter(ValidResponse == "Valid")%>%select(1:4)%>%drop_na()
+LQInvalid<-  LastQTextTEST%>%filter(ValidResponse == "Invalid")%>%select(1:4)%>%drop_na()
+## plot the hist 1st creating tables for plotting hists
+LQvalid1 <- LQvalid %>% melt(measure.vars = 1:4)
+ggplot(LQvalid1)+aes(x = value)+geom_histogram(bins = 10,aes(y=..density..))+facet_wrap(LQvalid1$variable,nrow = 2)
+LQInvalid1 <- LQInvalid %>% melt(measure.vars = 1:4)
+ggplot(LQInvalid1)+aes(x = value)+geom_histogram(bins = 10,aes(y=..density..))+facet_wrap(LQInvalid1$variable,nrow = 2)
+
+## Q: The histogram does not show a normal distribution, can we still use t test? 
+for(i in 1:4){
+  print(t.test(select(LQInvalid,i)%>%pull(),select(LQvalid,i)%>%pull()))
+}
+
+## Judging from the t statistics, it seems that the id excluded were appeared to have high probability that they comes from the same population? Can we safely exclude them? Or does it matters if we exclude them or not?

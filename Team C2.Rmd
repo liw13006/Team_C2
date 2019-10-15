@@ -1,29 +1,37 @@
 ---
-title: "Team C2"
-author: "Lee"
-date: "10/12/2019"
-output: pdf_document
+title: "Jessica Ghai's Counsulting Project"
+author: "Team C2"
+date: "10/15/2019"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
-pacman::p_load(tidyverse, png, grid)
+pacman::p_load(knitr,tidyverse, png, grid,reshape2)
 ```
 
  
-## Data Cleaning and EDA part
-```{r}
+# Data Cleaning and EDA part
+
+There are 3 files, `Numeric.csv`,`ChoiceText.csv` & `Need to be excluded IDs.xlsx`. The 1st two files are the results from the Survey, one in numeric form and the other lays out the actual choices the respondent made.
+
+```{r,warning=FALSE,message=FALSE}
 NumericDataRaw <- read_csv("Numeric.csv")
 TextDataRaw <- read_csv("ChoiceText.csv")
 ``` 
-Import Client specified IDs
-```{r}
+Import "invalid" responses IDs, for the purpose of EDA, we will keep these response in the data and analyze them to determine the conditions or restrictions which would be post on our analysis if we take them out.
+```{r,message=FALSE}
 ExcludedIDs = readxl::read_xlsx(path = "Need to be excluded IDs.xlsx",
   sheet = 3,col_names = TRUE,col_types = "text")%>%select(1)%>%pull()
 print(paste0("Number of IDs Client would like to exclude: ",
   as.character(length(ExcludedIDs))))
 ```
-## --- Import ends here
+Import ends here.
 
+---
+# Tag Invalid IDs
 Tag Original Dataset with ID valid status, Valid ID will be tagged "Valid" in the column:"ValidReponse", Invalid ones will be tagged "Invalid"
 ```{r}
 TextDataRaw = TextDataRaw%>%
@@ -39,10 +47,12 @@ Split them just in case
 TextRawWithoutExIDs = filter(TextDataRaw,!ResponseId %in% ExcludedIDs)
 TextRawofExIDs = filter(TextDataRaw,ResponseId %in% ExcludedIDs)
 ```
-## --- Tag and split ends here
+Tag and split ends here
 
+---
 
-```{r}
+Initial visualization of the demographic data
+```{r,warning=FALSE}
 geo=select(TextDataRaw,Q103_1_x:Q103,ValidResponse)%>%
   slice(-(1:2))%>%
   mutate(Q103 = as.factor(Q103),Q103_1_x = as.numeric(Q103_1_x),Q103_1_y = as.numeric(Q103_1_y))
@@ -58,16 +68,19 @@ img <- readPNG("Picture1.png")
  grid.raster(img)
 ```
 
-## Check counts in each region
+Check counts in each region
 ```{r}
 ggplot(geo) + aes(x = Q103) + geom_bar()+geom_text(stat='count', 
 aes(label=..count..), vjust=0)+facet_wrap(geo$ValidResponse)
 ```
 We have 76 NA values in geo questions. the population in this category is larger than Midwest and Southwest. Can we simply excluding them?
 
-## --- Initial visual ends here
+Initial visual ends here
 
-## --- Seperate Demographics
+---
+
+# Seperate Demographics
+
 Seperate the Demographic part, setting them as adequate type
 ```{r}
 DemoText = select(TextDataRaw,Q10:Q28,ValidResponse,ResponseId)%>%slice(-(1:2))%>%
@@ -82,30 +95,141 @@ DemoText = DemoText%>%mutate(Q13_6_TEXT = if_else(DemoText$Q13_6_TEXT == "Daycar
 ```
 Right now, two lists are in the result, need to separate them into columns
 
-## --- Separation For Q13
+## Correcting column names and factor codings for `DemoText`
+
 ```{r}
-Q13Text = select(DemoText,Q13,ValidResponse,ResponseId)%>%
-  unnest(Q13)%>%spread(key = Q13,value = Q13)%>%
+## check levels:
+print(levels(DemoText$Q10))
+## Relevel
+DemoText$Q10 = relevel(DemoText$Q10,"Registered Behavior Technician (RBT)")
+## Do the same to all demo questions
+DemoText$Q104 <-  factor(DemoText$Q104,levels = rev(levels(DemoText$Q104)))
+
+DemoText$Q58_1 <- factor(DemoText$Q58_1, levels = c("< 2 years","2 to 5 years", "6 to 10 years","11 to 15 years","> 15 years"))
+
+DemoText$Q58_2 <-  relevel(DemoText$Q58_2,"Yes")
+
+DemoText$Q19 <-  relevel(DemoText$Q19,"Yes")
+
+DemoText$Q17 <- factor(DemoText$Q17, levels = c("1",    "2",    "3-5", "+5", "None"))
+
+DemoText$Q105 <- factor(DemoText$Q105, levels = c("Never"    ,      "Seldom" ,   "Sometimes","Often"))
+
+DemoText$Q22 <- factor(DemoText$Q22, levels = c("Never"    ,      "Seldom" ,   "Sometimes","Often"))
+
+DemoText$Q29 <-  relevel(DemoText$Q29,"Yes")
+
+DemoText$Q30 <- factor(DemoText$Q30, levels = c("Never"    ,      "Seldom" ,   "Sometimes","Often"))
+
+DemoText$Q24 <-  relevel(DemoText$Q24,"Yes")
+
+DemoText$Q28 <-  relevel(DemoText$Q28,"Yes")
+
+## Rename the columns so the number match the number on the survey
+colnames(DemoText) <- c("Q1","Q2","Q3","Q3_text","Q4_x","Q4_y","Q4_Region","Q5a","Q5b","Q6","Q6_text","Q7","Q8","Q9","Q9_text","Q10","Q11","Q12","Q13","Q14","Q15","ValidResponse","ResponseId")
+```
+
+## Separation For Q6
+```{r}
+Q6Text = select(DemoText,Q6,ValidResponse,ResponseId)%>%
+  unnest(Q6)%>%spread(key = Q6,value = Q6)%>%
   mutate_at(3:9, ~replace(., !is.na(.), 1.))%>%
   mutate_at(3:9, ~replace(., is.na(.), 0.))
 ```
-## --- Sep for Q13 ends here
 
 
-## --- Similarily Separation for Q18
+
+## Similarily Separation for Q9
 ```{r}
-Q18Text = select(DemoText,Q18,ValidResponse,ResponseId)%>%
-  unnest(Q18)%>%spread(key = Q18,value = Q18)%>%select(-3)%>%
+Q9Text = select(DemoText,Q9,ValidResponse,ResponseId)%>%
+  unnest(Q9)%>%spread(key = Q9,value = Q9)%>%select(-3)%>%
   mutate_at(3:25, ~replace(., !is.na(.), 1.))%>%
   mutate_at(3:25, ~replace(., is.na(.), 0.))
 # Bird's colname is buggy replace it
-colnames(Q18Text)[colnames(Q18Text)=="Bird (i.e."] <- "Bird"
+colnames(Q9Text)[colnames(Q9Text)=="Bird (i.e."] <- "Bird"
 ```
-## --- Sep for Q18 ends here
 
-## At this point, we will have DemoText as the demographic part cleaned. Q13Text and Q18Text as the suppliment table to those two questions.
-## Be aware that a lot of the input had translated into factors, which depends on the graph you would like to plot, may results in some issues.
-## Have fun!!
+At this point, we will have DemoText as the demographic part cleaned. Q6Text and Q9Text as the suppliment table to those two questions. What's missing here is the EDA on the valid and invalid groups to see if they belongs to the same population or not. In other words, what and how much bias will be introduced into the sample if we exclude them?
 
 
+# Last Question Data Cleaning
 
+Preparing the data
+```{r}
+LastQText = select(TextDataRaw,Q32_1:Q32_4,ValidResponse,ResponseId)%>%slice(-(1:2))
+
+Q32_1Text = select(LastQText,Q32_1,ValidResponse,ResponseId)%>%unnest(Q32_1)%>%spread(key = Q32_1,value = Q32_1)%>%mutate_at(3:8, ~replace(., !is.na(.), 1.))%>%mutate_at(3:8, ~replace(., is.na(.), 0.))
+Q32_1Text = Q32_1Text[,c(1,2,6,3,5,4,7,8)]
+
+Q32_2Text = select(LastQText,Q32_2,ValidResponse,ResponseId)%>%unnest(Q32_2)%>%spread(key = Q32_2,value = Q32_2)%>%mutate_at(3:8, ~replace(., !is.na(.), 1.))%>%mutate_at(3:8, ~replace(., is.na(.), 0.))
+Q32_2Text = Q32_2Text[,c(1,2,6,3,5,4,7,8)]
+
+Q32_3Text = select(LastQText,Q32_3,ValidResponse,ResponseId)%>%unnest(Q32_3)%>%spread(key = Q32_3,value = Q32_3)%>%mutate_at(3:8, ~replace(., !is.na(.), 1.))%>%mutate_at(3:8, ~replace(., is.na(.), 0.))
+Q32_3Text = Q32_3Text[,c(1,2,6,3,5,4,7,8)]
+
+Q32_4Text = select(LastQText,Q32_4,ValidResponse,ResponseId)%>%unnest(Q32_4)%>%spread(key = Q32_4,value = Q32_4)%>%mutate_at(3:8, ~replace(., !is.na(.), 1.))%>%mutate_at(3:8, ~replace(., is.na(.), 0.))
+Q32_4Text = Q32_4Text[,c(1,2,6,3,5,4,7,8)]
+```
+
+
+## Q55a.1.I believe a majority of the target population outlined above would respond positively to therapeutic services (e.g., ABA services) that incorporate animals. 
+```{r}
+LastQText$Q32_1 <- factor(LastQText$Q32_1,levels = c("Strongly Agree", "Agree", "Neither Agree or Disagree", "Disagree", "Strongly Disagree"))
+ggplot(LastQText) + aes(Q32_1,fill = Q32_1)+geom_bar(show.legend = FALSE)+geom_text(stat='count', aes(label=..count..), vjust=.5)+facet_wrap(Q32_1Text$ValidResponse)+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## 55b.2.I believe the presence of an animal can have a calming effect on many individuals within the target population outlined above
+
+```{r}
+LastQText$Q32_2 <- factor(LastQText$Q32_2,levels = c("Strongly Agree", "Agree", "Neither Agree or Disagree", "Disagree", "Strongly Disagree"))
+ggplot(LastQText) + aes(Q32_2,fill = Q32_2)+geom_bar(show.legend = FALSE)+geom_text(stat='count', aes(label=..count..), vjust=.5)+facet_wrap(Q32_2Text$ValidResponse)+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## 55c.3.I believe the presence of an animal can increase the frequency of social interaction opportunities between individuals within the target population outlined above and other people.
+
+```{r}
+LastQText$Q32_3 <- factor(LastQText$Q32_3,levels = c("Strongly Agree", "Agree", "Neither Agree or Disagree", "Disagree", "Strongly Disagree"))
+ggplot(LastQText) + aes(Q32_3,fill = Q32_3)+geom_bar(show.legend = FALSE)+geom_text(stat='count', aes(label=..count..), vjust=.5)+facet_wrap(Q32_3Text$ValidResponse)+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## 55d.4.I believe animals can aid in effectively teaching social interaction and communication skills associated with ASD symptomatology for a majority of the target population outlined above.
+
+```{r}
+LastQText$Q32_4 <- factor(LastQText$Q32_4,levels = c("Strongly Agree", "Agree", "Neither Agree or Disagree", "Disagree", "Strongly Disagree"))
+ggplot(LastQText) + aes(Q32_4,fill = Q32_4)+geom_bar(show.legend = FALSE)+geom_text(stat='count', aes(label=..count..), vjust=.5)+facet_wrap(Q32_4Text$ValidResponse)+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Testing the Invalid IDs' Responses
+
+Check if the factor is adequatly transfered into integers
+```{r}
+LastQTextTEST <- LastQText%>%mutate_at(.var = 1:4,.funs = as.factor)%>%mutate_at(.var = 1:4,.funs = as.numeric)
+```
+
+Create separate tables for Valid and Invalid Responses
+
+```{r}
+LQvalid <-  LastQTextTEST%>%filter(ValidResponse == "Valid")%>%select(1:4)%>%drop_na()
+LQInvalid<-  LastQTextTEST%>%filter(ValidResponse == "Invalid")%>%select(1:4)%>%drop_na()
+```
+
+Plot the Histogram, but 1st needs to rearrange the data frame
+
+```{r}
+LQvalid1 <- LQvalid %>% melt(measure.vars = 1:4)
+ggplot(LQvalid1)+aes(x = value)+geom_histogram(bins = 10,aes(y=..density..))+facet_wrap(LQvalid1$variable,nrow = 2)+ggtitle("Valid IDs' Response")
+LQInvalid1 <- LQInvalid %>% melt(measure.vars = 1:4)
+ggplot(LQInvalid1)+aes(x = value)+geom_histogram(bins = 10,aes(y=..density..))+facet_wrap(LQInvalid1$variable,nrow = 2)+ggtitle("Invalid IDs' Response")
+```
+
+The data does not seem to have a normal distribution, can we still use t test to test these two sample means?\newline
+
+In case we can, below is the t test results.
+
+```{r}
+for(i in 1:4){
+  print(t.test(select(LQInvalid,i)%>%pull(),select(LQvalid,i)%>%pull()))
+}
+```
+
+Judging from the t statistics, it seems that the id excluded were appeared to have high probability that they comes from the same population? Can we safely exclude them? Or does it matters if we exclude them or not?
