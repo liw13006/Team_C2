@@ -259,8 +259,8 @@ Q17toQ55 <-  full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q17,
 ```
 Check the number of non-NA response:
 
-```{r}
-full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q17,ResponseId,ValidResponse),LastQTextTEST)%>%drop_na()%>%dim()
+```{r,echo = FALSE}
+print(full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q17,ResponseId,ValidResponse),LastQTextTEST)%>%drop_na()%>%dim())
 ```
 Plot them
 ```{r}
