@@ -264,7 +264,80 @@ print(full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q17,Respons
 ```
 Plot them
 ```{r}
-ggplot(Q17toQ55)+aes(x = value,fill = Q17)+geom_histogram(bins = 10,aes(y=..density..),alpha = .8,position = "dodge")+facet_grid(variable ~ ValidResponse)+ggtitle("Hist")
+ggplot(Q17toQ55%>%filter(ValidResponse == "Valid"))+aes(x = value,fill = Q17)+geom_histogram(bins = 10,aes(y=..density..),alpha = .8,position = "dodge")+facet_grid(variable ~ ValidResponse)+ggtitle("Hist")
 ```
 
 Below is the rest of the EDA of Research Question
+
+## RQ.b: Are respondents that reported consideration of animal incorporation (Q16=1) have statistically different scores across perception/attitude statements (Q55 a-d) compared to respondents that reported no consideration of animal incorporation practices (Q16=2)?
+
+```{r}
+Q16toQ55 <-  full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q16,ResponseId,ValidResponse),LastQTextTEST)%>%melt(measure.vars = 4:7)
+```
+
+```{r}
+print(full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q16,ResponseId,ValidResponse),LastQTextTEST)%>%drop_na()%>%dim())
+```
+
+Plot
+```{r}
+ggplot(Q16toQ55%>%filter(ValidResponse == "Valid"))+aes(x = value,fill = Q16)+geom_histogram(bins = 10,aes(y=..density..),alpha = .8,position = "dodge")+facet_grid(variable ~ ValidResponse)+ggtitle("Hist")
+```
+
+## RQ.c: Are respondents that reported animal cohabitation (Q7=1) have statistically different scores across perception/attitude statements (Q55 a-d) compared to respondents that reported no animal cohabitation (Q7=2)?
+
+```{r}
+Q7toQ55 <-  full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q7,ResponseId,ValidResponse),LastQTextTEST)%>%melt(measure.vars = 4:7)
+```
+
+```{r}
+print(full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q7,ResponseId,ValidResponse),LastQTextTEST)%>%drop_na()%>%dim())
+```
+
+Plot
+```{r}
+ggplot(Q7toQ55%>%filter(ValidResponse == "Valid"))+aes(x = value,fill = Q7)+geom_histogram(bins = 10,aes(y=..density..),alpha = .8,position = "dodge")+facet_grid(variable ~ ValidResponse)+ggtitle("Hist")
+```
+
+## RQ.d: Are respondents that reported dog ownership (Q9=1) have statistically different scores across perception/attitude statements (Q55 a-d) compared to respondents that reported no dog ownership?
+```{r}
+Q9toQ55 <-  full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Dog,ResponseId,ValidResponse),LastQTextTEST)%>%melt(measure.vars = 4:7)
+```
+
+```{r}
+print(full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Dog,ResponseId,ValidResponse),LastQTextTEST)%>%drop_na()%>%dim())
+```
+
+Plot
+```{r}
+ggplot(Q9toQ55%>%filter(ValidResponse == "Valid"))+aes(x = value,fill = Dog)+geom_histogram(bins = 10,aes(y=..density..),alpha = .8,position = "dodge")+facet_grid(variable ~ ValidResponse)+ggtitle("Hist")
+```
+
+## RQ.i: Are respondents that reported direct exposure (Q14=1) have statistically different scores across perception/attitude statements (Q55 a-d) compared to respondents that reported no direct exposure (Q14=2)?
+
+```{r}
+Q14toQ55 <-  full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q14,ResponseId,ValidResponse),LastQTextTEST)%>%melt(measure.vars = 4:7)
+```
+
+```{r}
+print(full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q14,ResponseId,ValidResponse),LastQTextTEST)%>%drop_na()%>%dim())
+```
+
+Plot
+```{r}
+ggplot(Q14toQ55%>%filter(ValidResponse == "Valid"))+aes(x = value,fill = Q14)+geom_histogram(bins = 10,aes(y=..density..),alpha = .8,position = "dodge")+facet_grid(variable ~ ValidResponse)+ggtitle("Hist")
+```
+
+## RQ.j: Are respondents that reported indirect exposure (Q15=1) have statistically different scores across perception/attitude statements (Q55 a-d) compared to respondents that reported no indirect exposure (Q14=2) or unsure (Q14=3)?
+```{r}
+Q15toQ55 <-  full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q15,ResponseId,ValidResponse),LastQTextTEST)%>%melt(measure.vars = 4:7)
+```
+
+```{r}
+print(full_join(by = c("ResponseId","ValidResponse"),select(DemoText,Q15,ResponseId,ValidResponse),LastQTextTEST)%>%drop_na()%>%dim())
+```
+
+Plot
+```{r}
+ggplot(Q15toQ55%>%filter(ValidResponse == "Valid"))+aes(x = value,fill = Q15)+geom_histogram(bins = 10,aes(y=..density..),alpha = .8,position = "dodge")+facet_grid(variable ~ ValidResponse)+ggtitle("Hist")
+```
